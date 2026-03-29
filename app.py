@@ -1,118 +1,145 @@
 import streamlit as st
 from groq import Groq
+import time
 
 # --- 1. PAGE CONFIG ---
 st.set_page_config(page_title="Sikhism AI", page_icon="🪯", layout="centered")
 
-# --- 2. THE ELITE UI (CSS) ---
+# --- 2. THE PREMIUM CSS (Modern & Attractive) ---
 st.markdown("""
     <style>
-    /* Import Premium Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
     
-    /* Main Background & Font */
-    .stApp { 
-        background-color: #050505; 
-        font-family: 'Inter', sans-serif;
+    .stApp { background: linear-gradient(135deg, #050505 0%, #0a0a0a 100%); font-family: 'Inter', sans-serif; }
+    
+    /* Elegant Header */
+    .title-text { font-family: 'Playfair Display', serif; color: #FF9933; font-size: 3rem; margin-bottom: 0px; text-align: center; }
+    .subtitle-text { color: #666; font-size: 1rem; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+
+    /* Wisdom Chips / Buttons */
+    .stButton > button {
+        background: rgba(255, 153, 51, 0.05) !important;
+        color: #FF9933 !important;
+        border: 1px solid rgba(255, 153, 51, 0.3) !important;
+        border-radius: 20px !important;
+        padding: 5px 20px !important;
+        transition: all 0.3s ease !important;
+        font-size: 13px !important;
+    }
+    .stButton > button:hover {
+        background: rgba(255, 153, 51, 0.2) !important;
+        border-color: #FF9933 !important;
+        transform: translateY(-2px);
     }
 
-    /* Professional Header */
-    .main-title {
-        color: #FF9933;
-        font-size: 2.5rem;
-        font-weight: 600;
-        letter-spacing: -1px;
-        margin-bottom: 0px;
-    }
-    .sub-title {
-        color: #666;
-        font-size: 1rem;
-        margin-bottom: 30px;
-    }
-
-    /* Chat Message Styling */
+    /* Chat Styling */
     [data-testid="stChatMessage"] {
-        background-color: #0e0e0e !important;
-        border: 1px solid #1a1a1a !important;
-        border-radius: 15px !important;
-        padding: 20px !important;
-        margin-bottom: 15px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    
-    /* AI Response Accent */
-    [data-testid="stChatMessageAssistant"] {
-        border-left: 4px solid #FF9933 !important;
-    }
-
-    /* Glowing Input Box Customization */
-    .stChatInputContainer {
-        padding: 10px !important;
-        background: rgba(255, 255, 255, 0.02) !important;
+        background: rgba(18, 18, 18, 0.8) !important;
+        backdrop-filter: blur(10px);
         border: 1px solid #222 !important;
-        border-radius: 16px !important;
-        transition: all 0.4s ease;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+        margin-bottom: 15px !important;
     }
     
+    /* Glowing Input */
+    .stChatInputContainer {
+        border: 1px solid #333 !important;
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        transition: border 0.4s ease, box-shadow 0.4s ease;
+    }
     .stChatInputContainer:focus-within {
         border-color: #FF9933 !important;
-        box-shadow: 0 0 20px rgba(255, 153, 51, 0.25) !important;
+        box-shadow: 0 0 25px rgba(255, 153, 51, 0.2) !important;
     }
 
-    /* Hide unnecessary Streamlit UI elements */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* User Avatar Styling */
-    [data-testid="stChatMessageUser"] .st-emotion-cache-1edm7bh {
-        background-color: #1B3A6B !important;
-    }
+    /* Avatar Circles */
+    [data-testid="stChatMessage"] .st-emotion-cache-1edm7bh { border: 2px solid #FF9933; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. API INITIALIZATION ---
+# --- 3. LOGIC & INITIALIZATION ---
 try:
-    api_key = st.secrets["GROQ_API_KEY"]
-    client = Groq(api_key=api_key)
-except Exception:
-    st.error("Missing GROQ_API_KEY in Secrets.")
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+except:
+    st.error("Please set GROQ_API_KEY in Secrets.")
     st.stop()
-
-# --- 4. APP LAYOUT ---
-st.markdown('<p class="main-title">Sikhism Wisdom AI</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Explore the history, values, and teachings of the Gurus.</p>', unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "You are a master guide to Sikhism. RULES: Be CONCISE (max 150 words). Direct answer first. Use 'Ji' for Gurus. Bold key terms. End with one curious follow-up question."}
+        {"role": "system", "content": "You are a master guide to Sikhism. Be concise, respectful, and modern. Use 'Ji' for Gurus. Bold key terms. End with one question."}
     ]
 
-# Display Chat History
-for message in st.session_state.messages:
-    if message["role"] != "system":
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+# --- 4. THE UI LAYOUT ---
+st.markdown('<h1 class="title-text">Sohum AI</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">WISDOM • HISTORY • SERVICE</p>', unsafe_allow_html=True)
 
-# --- 5. CHAT INPUT & LOGIC ---
+# IDEA #2: WISDOM CHIPS (Quick Actions)
+st.markdown("<p style='text-align:center; color:#444; font-size:12px;'>EXPLORE TOPICS</p>", unsafe_allow_html=True)
+cols = st.columns(3)
+quick_queries = ["✨ Guru Nanak Dev Ji", "⚔️ Meaning of Khalsa", "📜 The Five Ks"]
+
+# We use a session state trick to "click" buttons into the chat
+if "query_trigger" not in st.session_state:
+    st.session_state.query_trigger = None
+
+for i, query in enumerate(quick_queries):
+    if cols[i].button(query):
+        st.session_state.query_trigger = query
+
+# --- 5. CHAT ENGINE ---
+# Standard icons or URL to custom Sikh-themed icons
+AI_ICON = "https://cdn-icons-png.flaticon.com/512/3244/3244673.png" # Example Khanda-style icon
+USER_ICON = "👤"
+
+for msg in st.session_state.messages:
+    if msg["role"] != "system":
+        with st.chat_message(msg["role"], avatar=AI_ICON if msg["role"] == "assistant" else USER_ICON):
+            st.markdown(msg["content"])
+
+def handle_input(user_input):
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user", avatar=USER_ICON):
+        st.markdown(user_input)
+
+    with st.chat_message("assistant", avatar=AI_ICON):
+        # IDEA #5 (Extra): STREAMING EFFECT
+        response_placeholder = st.empty()
+        full_response = ""
+        
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=st.session_state.messages,
+            temperature=0.4
+        )
+        
+        full_response = completion.choices[0].message.content
+        
+        # Simulate streaming for that "modern AI" feel
+        displayed_text = ""
+        for char in full_response:
+            displayed_text += char
+            response_placeholder.markdown(displayed_text + "▌")
+            time.sleep(0.002) # Fast stream
+        response_placeholder.markdown(full_response)
+        
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+# Check if a Wisdom Chip was clicked
+if st.session_state.query_trigger:
+    handle_input(st.session_state.query_trigger)
+    st.session_state.query_trigger = None
+    st.rerun()
+
+# Regular Chat Input
 if prompt := st.chat_input("Ask your heart..."):
-    # Add User Message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    handle_input(prompt)
 
-    # Generate Response
-    with st.chat_message("assistant"):
-        try:
-            # Using the 70B model for high intelligence
-            response_container = st.empty()
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=st.session_state.messages,
-                temperature=0.4
-            )
-            full_response = completion.choices[0].message.content
-            response_container.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
-        except Exception as e:
-            st.error(f"Error calling Groq: {e}")
+# --- 6. SIDEBAR (The Final Modern Touch) ---
+with st.sidebar:
+    st.markdown("<h2 style='color:#FF9933;'>🪯 About Sohum</h2>", unsafe_allow_html=True)
+    st.info("Sohum AI is a respectful guide to Sikh philosophy and history, powered by Llama 3.3.")
+    st.divider()
+    st.markdown("### Daily Fact")
+    st.write("**Seva** (Selfless Service) is one of the three pillars of Sikhism. Over 100,000 people eat for free daily at the Golden Temple.")
