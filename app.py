@@ -1,97 +1,87 @@
 import streamlit as st
-import pandas as pd
+from groq import Groq
 import time
 
-# --- 1. SETTINGS & THEME ---
-st.set_page_config(page_title="Sohum AI | War Room", page_icon="⚔️", layout="wide")
+# --- 1. PAGE CONFIG ---
+st.set_page_config(page_title="Sohum AI", page_icon="🪯", layout="centered")
 
+# --- 2. THE OG MODERN UI (Orange Glow & Glassmorphism) ---
 st.markdown("""
     <style>
-    .stApp { background: #05070a; font-family: 'Inter', sans-serif; }
-    .war-room-header { 
-        font-family: 'Space Grotesk', sans-serif;
-        color: #ff4b4b; font-size: 2.5rem; font-weight: 800; text-align: center;
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@300;400;600&display=swap');
+    
+    /* Background & Global Font */
+    .stApp { 
+        background: radial-gradient(circle at top right, #1a1a1a, #050505); 
+        font-family: 'Inter', sans-serif; 
     }
-    .strategy-card {
-        background: rgba(255, 75, 75, 0.05);
-        border: 1px solid #ff4b4b;
-        padding: 20px;
-        border-radius: 15px;
-        color: white;
+    
+    /* Elegant Saffron Header */
+    .main-title { 
+        font-family: 'Playfair Display', serif; 
+        color: #FF9933; 
+        font-size: 3.5rem; 
+        text-align: center; 
+        margin-bottom: 0px;
+        text-shadow: 0 0 20px rgba(255, 153, 51, 0.3);
     }
-    [data-testid="stMetric"] { background: #0d1117; border: 1px solid #232d3f; padding: 15px; border-radius: 12px; }
+    .sub-title { 
+        color: #666; 
+        font-size: 0.9rem; 
+        text-align: center; 
+        letter-spacing: 3px; 
+        margin-bottom: 40px; 
+        text-transform: uppercase;
+    }
+
+    /* Glassmorphism Chat Bubbles */
+    [data-testid="stChatMessage"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 153, 51, 0.1) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5) !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* Assistant Highlight */
+    [data-testid="stChatMessageAssistant"] {
+        border-left: 4px solid #FF9933 !important;
+    }
+
+    /* Glow Input Box */
+    .stChatInputContainer {
+        border: 1px solid #333 !important;
+        border-radius: 15px !important;
+        background: rgba(0,0,0,0.2) !important;
+    }
+    .stChatInputContainer:focus-within {
+        border-color: #FF9933 !important;
+        box-shadow: 0 0 15px rgba(255, 153, 51, 0.2) !important;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DEBT LOGIC ENGINE ---
-def calculate_crush_map(debts, extra_payment, strategy):
-    # Sort based on Logic
-    if strategy == "Avalanche (Mathematical Logic)":
-        debts = sorted(debts, key=lambda x: x['rate'], reverse=True)
-    else: # Snowball (Psychological Logic)
-        debts = sorted(debts, key=lambda x: x['balance'])
-    
-    # Simple simulation of 10-year interest savings
-    total_interest_saved = sum([d['balance'] * (d['rate']/100) * 10 for d in debts]) * (extra_payment / 500)
-    return debts, total_interest_saved
-
-# --- 3. THE WAR ROOM UI ---
-st.markdown('<h1 class="war-room-header">DEBT-CRUSH WAR ROOM</h1>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#64748b;'>STOP PAYING INTEREST. START OWNING YOUR FUTURE.</p>", unsafe_allow_html=True)
-
-with st.sidebar:
-    st.header("🛡️ Strategy Intel")
-    strat = st.radio("Choose Your Logic:", ["Avalanche (Mathematical Logic)", "Snowball (Psychological Logic)"])
-    st.divider()
-    st.info("💡 **Avalanche:** Targets highest interest first. Saves the most money.\n\n🔥 **Snowball:** Targets smallest balance first. Wins the psychological game.")
-
-# Input Section
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.subheader("📝 Input Your Debts")
-    with st.expander("Add Debt Items", expanded=True):
-        d1_name = st.text_input("Debt Name", "Student Loan A")
-        d1_bal = st.number_input("Balance ($)", value=5000)
-        d1_rate = st.number_input("Interest Rate (%)", value=6.5)
-        
-        st.divider()
-        extra = st.slider("Monthly Extra 'Crush' Payment ($)", 0, 1000, 100)
-
-# Process Logic
-debt_list = [{"name": d1_name, "balance": d1_bal, "rate": d1_rate}]
-# Adding a dummy second debt for visual mapping
-debt_list.append({"name": "Credit Card", "balance": 1200, "rate": 22.0})
-
-mapped_debts, savings = calculate_crush_map(debt_list, extra, strat)
-
-with col2:
-    st.subheader("🗺️ Dynamic Strategy Map")
-    
-    # Metrics
-    m1, m2 = st.columns(2)
-    m1.metric("10-Year Interest Saved", f"${savings:,.2f}", delta="Crushing It", delta_color="normal")
-    m2.metric("Next Target", mapped_debts[0]['name'])
-
-    # The Map
-    st.markdown('<div class="strategy-card">', unsafe_allow_html=True)
-    st.markdown(f"### 🎯 CURRENT OBJECTIVE: {mapped_debts[0]['name']}")
-    st.write(f"Every extra **${extra}** you have this month goes directly here. Do not spread it thin. Focus fire until this balance is $0.")
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Visualizing the "Hit List"
-    st.write("### ⚔️ The Hit List (Priority Order)")
-    for i, d in enumerate(mapped_debts):
-        st.write(f"**{i+1}. {d['name']}** | Balance: ${d['balance']} | Rate: {d['rate']}%")
-
-# --- 4. CHAT AGENT (Logic Focused) ---
-st.divider()
-st.subheader("🧠 Discuss Strategy with Sohum AI")
+# --- 3. CORE LOGIC ---
+try:
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+except:
+    st.error("Missing GROQ_API_KEY in Secrets.")
+    st.stop()
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are Sohum AI. Focus on Debt-Crush logic. Explain the math of interest like a trap that we are escaping."}]
+    st.session_state.messages = [
+        {"role": "system", "content": "You are Sohum AI, a respectful and profound guide to Sikhism. Use 'Ji' for Gurus. Focus on the core pillars: Naam Japo, Kirat Karo, Vand Chakko. Be concise and poetic."}
+    ]
 
-if prompt := st.chat_input("Ask about the logic..."):
-    with st.chat_message("user"): st.write(prompt)
-    # [Insert Groq API call here to handle the response]
-    with st.chat_message("assistant"): st.write("Based on the Avalanche Logic, your Credit Card is a 'Financial Leak'. By plugging that leak first, you effectively give yourself a 22% guaranteed return on your money.")
+# --- 4. UI LAYOUT ---
+st.markdown('<h1 class="main-title">Sohum AI</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Wisdom • Oneness • Service</p>', unsafe_allow_html=True)
+
+# SIDEBAR
+with st.sidebar:
+    st
