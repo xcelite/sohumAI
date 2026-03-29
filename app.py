@@ -85,10 +85,8 @@ st.markdown('<p class="sub-title">Wisdom • Oneness • Service</p>', unsafe_al
 # SIDEBAR
 with st.sidebar:
     st.markdown("<h2 style='color:#FF9933;'>🪯</h2>", unsafe_allow_html=True)
-    st.write("")
+    st.write("Guided by the light of the Guru Granth Sahib Ji.")
     st.divider()
-    st.caption("Guided by the light of the Guru Granth Sahib Ji.")
-
 # --- 5. CHAT ENGINE ---
 AI_ICON = "https://cdn-icons-png.flaticon.com/512/3244/3244673.png" # Saffron Icon URL
 USER_ICON = "👤"
