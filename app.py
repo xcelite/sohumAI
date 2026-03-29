@@ -84,8 +84,8 @@ st.markdown('<p class="sub-title">Wisdom • Oneness • Service</p>', unsafe_al
 
 # SIDEBAR
 with st.sidebar:
-    st.markdown("<h2 style='color:#FF9933;'>🪯 About Sohum</h2>", unsafe_allow_html=True)
-    st.write("Sohum means 'I am That'—a reminder of the universal connection in all of us.")
+    st.markdown("<h2 style='color:#FF9933;'>🪯</h2>", unsafe_allow_html=True)
+    st.write("")
     st.divider()
     st.caption("Guided by the light of the Guru Granth Sahib Ji.")
 
