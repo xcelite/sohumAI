@@ -1,126 +1,97 @@
 import streamlit as st
-from groq import Groq
+import pandas as pd
 import time
 
 # --- 1. SETTINGS & THEME ---
-st.set_page_config(page_title="Sohum AI | Fintech", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="Sohum AI | War Room", page_icon="⚔️", layout="wide")
 
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-    
     .stApp { background: #05070a; font-family: 'Inter', sans-serif; }
-    
-    .main-header { 
+    .war-room-header { 
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 3.5rem; font-weight: 800; color: #00ffa3; 
-        text-align: center; margin-bottom: 0px;
-        text-shadow: 0 0 30px rgba(0, 255, 163, 0.2);
+        color: #ff4b4b; font-size: 2.5rem; font-weight: 800; text-align: center;
     }
-
-    /* Jargon Glow Card - Specific highlight for analogies */
-    .jargon-box {
-        background: rgba(0, 255, 163, 0.05);
-        border: 1px dashed #00ffa3;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
+    .strategy-card {
+        background: rgba(255, 75, 75, 0.05);
+        border: 1px solid #ff4b4b;
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
     }
-    
-    [data-testid="stChatMessage"] {
-        background: #0d1117 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 16px !important;
-    }
-    
-    [data-testid="stChatMessageAssistant"] {
-        border-left: 5px solid #00ffa3 !important;
-    }
-
-    .stChatInputContainer { border-radius: 15px !important; border: 1px solid #334155 !important; }
+    [data-testid="stMetric"] { background: #0d1117; border: 1px solid #232d3f; padding: 15px; border-radius: 12px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. THE GEN-Z FINTECH ENGINE ---
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "system", "content": """You are Sohum AI, a high-level Financial Intelligence Agent for teens.
-        
-        CORE RULE: Use the 'Gen-Z Filter'. Never sound like a bank brochure. 
-        When explaining complex jargon, use 'Fluent Fintech' analogies:
-        - Liquidity = Cash vs. V-Bucks/Skins (Can't buy pizza with a skin).
-        - Volatility = A TikTok sound's hype cycle (Huge peak, then falls off).
-        - Diversification = Not putting all your eggs in one Discord server.
-        - Inflation = When the rare skins everyone wanted suddenly become common/cheap.
-        
-        FORMAT: 
-        1. Give the professional definition.
-        2. Use a 'Translation' section with a relatable analogy.
-        3. Keep it punchy. Use bolding for Tickers and Gains."""}
-    ]
+# --- 2. DEBT LOGIC ENGINE ---
+def calculate_crush_map(debts, extra_payment, strategy):
+    # Sort based on Logic
+    if strategy == "Avalanche (Mathematical Logic)":
+        debts = sorted(debts, key=lambda x: x['rate'], reverse=True)
+    else: # Snowball (Psychological Logic)
+        debts = sorted(debts, key=lambda x: x['balance'])
+    
+    # Simple simulation of 10-year interest savings
+    total_interest_saved = sum([d['balance'] * (d['rate']/100) * 10 for d in debts]) * (extra_payment / 500)
+    return debts, total_interest_saved
 
-# --- 3. INITIALIZATION ---
-try:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except:
-    st.error("Check your GROQ_API_KEY in Streamlit Secrets.")
-    st.stop()
+# --- 3. THE WAR ROOM UI ---
+st.markdown('<h1 class="war-room-header">DEBT-CRUSH WAR ROOM</h1>', unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#64748b;'>STOP PAYING INTEREST. START OWNING YOUR FUTURE.</p>", unsafe_allow_html=True)
 
-# --- 4. UI LAYOUT ---
-st.markdown('<h1 class="main-header">Sohum AI</h1>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#4e5d78; font-weight:600; letter-spacing:2px;'>FINANCIAL INTELLIGENCE AGENT</p>", unsafe_allow_html=True)
-
-# SIDEBAR
 with st.sidebar:
-    st.markdown("### 🛠️ Mode: Fluent Fintech")
-    st.success("Gen-Z Filter: ACTIVE")
+    st.header("🛡️ Strategy Intel")
+    strat = st.radio("Choose Your Logic:", ["Avalanche (Mathematical Logic)", "Snowball (Psychological Logic)"])
     st.divider()
-    st.markdown("### 💡 Pro Tip")
-    st.info("Ask me: 'Explain Options trading like I'm 5' or 'What is a Short Squeeze in Fortnite terms?'")
+    st.info("💡 **Avalanche:** Targets highest interest first. Saves the most money.\n\n🔥 **Snowball:** Targets smallest balance first. Wins the psychological game.")
 
-# QUICK START CHIPS
-cols = st.columns(3)
-chips = ["💧 What is Liquidity?", "📉 Explain Volatility", "🏦 Why use an HYSA?"]
-if "trigger" not in st.session_state: st.session_state.trigger = None
+# Input Section
+col1, col2 = st.columns([1, 2])
 
-for i, text in enumerate(chips):
-    if cols[i].button(text, use_container_width=True):
-        st.session_state.trigger = text
-
-# --- 5. CHAT LOGIC ---
-def process_chat(text):
-    st.session_state.messages.append({"role": "user", "content": text})
-    with st.chat_message("user"):
-        st.markdown(text)
-
-    with st.chat_message("assistant", avatar="⚡"):
-        placeholder = st.empty()
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=st.session_state.messages,
-            temperature=0.5
-        )
-        full_res = response.choices[0].message.content
+with col1:
+    st.subheader("📝 Input Your Debts")
+    with st.expander("Add Debt Items", expanded=True):
+        d1_name = st.text_input("Debt Name", "Student Loan A")
+        d1_bal = st.number_input("Balance ($)", value=5000)
+        d1_rate = st.number_input("Interest Rate (%)", value=6.5)
         
-        # Fast "Matrix" Stream
-        curr = ""
-        for char in full_res:
-            curr += char
-            placeholder.markdown(curr + "▌")
-            time.sleep(0.001)
-        placeholder.markdown(full_res)
-        st.session_state.messages.append({"role": "assistant", "content": full_res})
+        st.divider()
+        extra = st.slider("Monthly Extra 'Crush' Payment ($)", 0, 1000, 100)
 
-# Display history
-for m in st.session_state.messages:
-    if m["role"] != "system":
-        with st.chat_message(m["role"], avatar="⚡" if m["role"] == "assistant" else None):
-            st.markdown(m["content"])
+# Process Logic
+debt_list = [{"name": d1_name, "balance": d1_bal, "rate": d1_rate}]
+# Adding a dummy second debt for visual mapping
+debt_list.append({"name": "Credit Card", "balance": 1200, "rate": 22.0})
 
-if st.session_state.trigger:
-    process_chat(st.session_state.trigger)
-    st.session_state.trigger = None
-    st.rerun()
+mapped_debts, savings = calculate_crush_map(debt_list, extra, strat)
 
-if prompt := st.chat_input("Drop a finance question..."):
-    process_chat(prompt)
+with col2:
+    st.subheader("🗺️ Dynamic Strategy Map")
+    
+    # Metrics
+    m1, m2 = st.columns(2)
+    m1.metric("10-Year Interest Saved", f"${savings:,.2f}", delta="Crushing It", delta_color="normal")
+    m2.metric("Next Target", mapped_debts[0]['name'])
+
+    # The Map
+    st.markdown('<div class="strategy-card">', unsafe_allow_html=True)
+    st.markdown(f"### 🎯 CURRENT OBJECTIVE: {mapped_debts[0]['name']}")
+    st.write(f"Every extra **${extra}** you have this month goes directly here. Do not spread it thin. Focus fire until this balance is $0.")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Visualizing the "Hit List"
+    st.write("### ⚔️ The Hit List (Priority Order)")
+    for i, d in enumerate(mapped_debts):
+        st.write(f"**{i+1}. {d['name']}** | Balance: ${d['balance']} | Rate: {d['rate']}%")
+
+# --- 4. CHAT AGENT (Logic Focused) ---
+st.divider()
+st.subheader("🧠 Discuss Strategy with Sohum AI")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "system", "content": "You are Sohum AI. Focus on Debt-Crush logic. Explain the math of interest like a trap that we are escaping."}]
+
+if prompt := st.chat_input("Ask about the logic..."):
+    with st.chat_message("user"): st.write(prompt)
+    # [Insert Groq API call here to handle the response]
+    with st.chat_message("assistant"): st.write("Based on the Avalanche Logic, your Credit Card is a 'Financial Leak'. By plugging that leak first, you effectively give yourself a 22% guaranteed return on your money.")
