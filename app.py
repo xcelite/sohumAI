@@ -84,4 +84,45 @@ st.markdown('<p class="sub-title">Wisdom • Oneness • Service</p>', unsafe_al
 
 # SIDEBAR
 with st.sidebar:
-    st
+    st.markdown("<h2 style='color:#FF9933;'>🪯 About Sohum</h2>", unsafe_allow_html=True)
+    st.write("Sohum means 'I am That'—a reminder of the universal connection in all of us.")
+    st.divider()
+    st.caption("Guided by the light of the Guru Granth Sahib Ji.")
+
+# --- 5. CHAT ENGINE ---
+AI_ICON = "https://cdn-icons-png.flaticon.com/512/3244/3244673.png" # Saffron Icon URL
+USER_ICON = "👤"
+
+# Display History
+for msg in st.session_state.messages:
+    if msg["role"] != "system":
+        with st.chat_message(msg["role"], avatar=AI_ICON if msg["role"] == "assistant" else USER_ICON):
+            st.markdown(msg["content"])
+
+# Handle New Input
+if prompt := st.chat_input("Ask a question about Sikhi..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar=USER_ICON):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant", avatar=AI_ICON):
+        placeholder = st.empty()
+        full_response = ""
+        
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=st.session_state.messages,
+            temperature=0.5
+        )
+        
+        full_response = completion.choices[0].message.content
+        
+        # Smooth Typewriter Effect
+        displayed_text = ""
+        for char in full_response:
+            displayed_text += char
+            placeholder.markdown(displayed_text + "▌")
+            time.sleep(0.005)
+        placeholder.markdown(full_response)
+        
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
